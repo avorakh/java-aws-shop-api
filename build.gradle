@@ -1,6 +1,7 @@
 plugins {
     alias libs.plugins.spotless apply false
     alias libs.plugins.lombok apply false
+    alias libs.plugins.shadow apply false
 }
 
 group = 'dev.avorakh.shop'
@@ -26,10 +27,12 @@ subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven { url 'https://repo.spring.io/milestone' }
     }
 
+
+
     dependencies {
-        implementation platform(libs.junit.bom.get().toString())
     }
 
     lombok {
@@ -41,6 +44,7 @@ subprojects {
             test {
                 testType = TestSuiteType.UNIT_TEST
                 dependencies {
+                    implementation platform(libs.junit.bom.get().toString())
                     implementation 'org.junit.jupiter:junit-jupiter'
                 }
             }
