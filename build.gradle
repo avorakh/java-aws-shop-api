@@ -1,0 +1,107 @@
+plugins {
+    alias libs.plugins.spotless apply false
+    alias libs.plugins.lombok apply false
+}
+
+group = 'dev.avorakh.shop'
+
+rootProject.version = '0.1.0'
+
+subprojects {
+
+    apply plugin: 'java'
+    apply plugin: 'jvm-test-suite'
+    apply plugin: 'jacoco'
+    apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'pmd'
+    apply plugin: 'io.freefair.lombok'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation platform(libs.junit.bom.get().toString())
+    }
+
+    lombok {
+        version = "${libs.versions.lombok.get()}"
+    }
+
+    testing {
+        suites {
+            test {
+                testType = TestSuiteType.UNIT_TEST
+                dependencies {
+                    implementation 'org.junit.jupiter:junit-jupiter'
+                }
+            }
+        }
+    }
+
+
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
+        finalizedBy jacocoTestReport
+    }
+
+
+    jacoco {
+        toolVersion = libs.versions.jacoco.get()
+    }
+
+
+    jacocoTestReport {
+        executionData(test)
+        reports {
+            xml.required = true
+            html.required = true
+        }
+        dependsOn test
+    }
+
+
+    jacocoTestCoverageVerification {
+        violationRules {
+            rule {
+                limit {
+                    minimum = 0.5 // 50% Code Coverage
+                }
+            }
+        }
+        dependsOn jacocoTestReport
+    }
+
+    check.dependsOn jacocoTestCoverageVerification
+
+    spotless {
+        java {
+            palantirJavaFormat()
+            importOrder()
+            removeUnusedImports()
+            cleanthat()
+            formatAnnotations()
+        }
+    }
+
+
+    pmd {
+        ignoreFailures = true
+        consoleOutput = true
+        toolVersion = libs.versions.pmd.tool.get()
+        rulesMinimumPriority = 5
+        ruleSetFiles = files("$rootDir/config/pmd/pmd.xml") // The location of the configuration file.
+        ruleSets = []
+    }
+}

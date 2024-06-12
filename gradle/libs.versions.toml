@@ -1,0 +1,14 @@
+[versions]
+lombok = '1.18.32'
+freefairLombokVersion = '8.4'
+spotless = '6.25.0'
+pmd-tool = '7.0.0'
+jacoco = '0.8.11'
+junit = '5.10.2'
+
+[libraries]
+junit-bom = { module = 'org.junit:junit-bom', version.ref = 'junit' }
+
+[plugins]
+spotless = { id = 'com.diffplug.spotless', version.ref = 'spotless' }
+lombok = { id = 'io.freefair.lombok', version.ref = 'freefairLombokVersion' }
