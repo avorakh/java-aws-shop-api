@@ -23,11 +23,24 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
             var inputEvent = objectMapper.writeValueAsString(input);
 
             logger.log("LambdaHandler call input - [%s]".formatted(inputEvent), LogLevel.INFO);
-            var body = objectMapper.writeValueAsString(MockData.mockProductMap.values());
 
-            return CommonUtils.toAPIGatewayV2HTTPResponse(200, body);
+            String id = input.getPathParameters().get("productId");
+
+            logger.log("productId - [%s]".formatted(id), LogLevel.INFO);
+
+            var foundProduct = MockData.mockProductMap.get(id);
+
+            if (foundProduct != null) {
+                var body = objectMapper.writeValueAsString(foundProduct);
+                return CommonUtils.toAPIGatewayV2HTTPResponse(200, body);
+            }
+
+            logger.log("Product not found", LogLevel.ERROR);
+
+            return CommonUtils.toErrorAPIGatewayV2HTTPResponse(404, "PRODUCT_NOT_EXIST", 1100);
         } catch (JsonProcessingException e) {
             logger.log(e.getMessage(), LogLevel.ERROR);
+
             return CommonUtils.toErrorAPIGatewayV2HTTPResponse(500, "INTERNAL_SERVER_ERROR", 1000);
         }
     }

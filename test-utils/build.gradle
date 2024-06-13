@@ -1,0 +1,6 @@
+project.description= "test-utils"
+
+dependencies {
+    implementation libs.aws.lambda.core
+    implementation libs.slf4j.nop
+}

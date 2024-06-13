@@ -1,4 +1,4 @@
-package dev.avorakh.shop.function;
+package dev.avorakh.shop.function.test;
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import org.slf4j.Logger;

@@ -1,3 +1,6 @@
 rootProject.name = 'java-aws-shop-api'
 
+include 'products-common'
 include 'get-products-list-function'
+include 'get-products-by-id-function'
+include 'test-utils'
