@@ -7,7 +7,9 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class CommonUtils {
 
-    public static final Map<String, String> H_CONTENT_TYPE = Map.of("Content-Type", "application/json");
+    public static final Map<String, String> RESPONSE_HEADERS = Map.of(
+            "Content-Type", "application/json",
+            "Access-Control-Allow-Origin", "*");
 
     public static final String ERROR_TEMPLATE = "{\"message\":\"%s\", \"errorCode\":%d}";
 
@@ -18,7 +20,7 @@ public class CommonUtils {
     public APIGatewayV2HTTPResponse toAPIGatewayV2HTTPResponse(int statusCode, String body) {
         return APIGatewayV2HTTPResponse.builder()
                 .withStatusCode(statusCode)
-                .withHeaders(H_CONTENT_TYPE)
+                .withHeaders(RESPONSE_HEADERS)
                 .withBody(body)
                 .withIsBase64Encoded(false)
                 .build();
