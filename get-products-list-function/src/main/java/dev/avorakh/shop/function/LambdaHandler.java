@@ -9,12 +9,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.avorakh.shop.function.model.CommonUtils;
 import dev.avorakh.shop.function.model.MockData;
-import java.util.Map;
 
 public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    public static final Map<String, String> CONTENT_TYPE = Map.of("Content-Type", "application/json");
 
     @Override
     public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent input, Context context) {
