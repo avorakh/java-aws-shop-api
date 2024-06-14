@@ -1,9 +1,9 @@
 ---
 swagger: "2.0"
 info:
-  description: "Products API."
+  description: "Product Service"
   version: "1.0.0"
-  title: "Swagger Products API"
+  title: "Swagger Product Service"
 
 host: ".execute-api.eu-north-1.amazonaws.com"
 basePath: "/dev"
@@ -31,7 +31,7 @@ paths:
             items:
               $ref: "#/definitions/Product"
         500:
-          description: "Invalid status value"
+          description: "Internal server error"
           schema:
             $ref: "#/definitions/Error1"
 
