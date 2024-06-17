@@ -11,6 +11,7 @@ rootProject.version = '0.1.0'
 subprojects {
 
     apply plugin: 'java'
+    apply plugin: 'groovy'
     apply plugin: 'jvm-test-suite'
     apply plugin: 'jacoco'
     apply plugin: 'com.diffplug.spotless'

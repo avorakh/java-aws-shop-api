@@ -8,20 +8,37 @@ junit = '5.10.2'
 shadow = '8.1.1'
 aws-lambda-core = '1.2.3'
 aws-lambda-events = '3.11.6'
+aws-sdk-v2 = '2.23.14'
 jackson = '2.17.1'
 slf4j = '2.0.13'
+logback = '1.4.14'
 hamcrest = '2.2'
+groovy = '4.0.18'
+spock = '2.3-groovy-4.0'
+testcontainers = '1.19.3'
 
 [libraries]
 junit-bom = { module = 'org.junit:junit-bom', version.ref = 'junit' }
 aws-lambda-core =  { module = 'com.amazonaws:aws-lambda-java-core', version.ref = 'aws-lambda-core' }
 aws-lambda-events =  { module = 'com.amazonaws:aws-lambda-java-events', version.ref = 'aws-lambda-events' }
+aws-sdk-v2-bom = { module = 'software.amazon.awssdk:bom', version.ref = 'aws-sdk-v2' }
+slf4j-api = { module = 'org.slf4j:slf4j-api', version.ref = 'slf4j' }
+logback = { module = 'ch.qos.logback:logback-classic', version.ref = 'logback' }
 jackson-databind =   { module = 'com.fasterxml.jackson.core:jackson-databind', version.ref = 'jackson' }
 slf4j-nop =  { module = 'org.slf4j:slf4j-nop', version.ref = 'slf4j' }
 hamcrest =  { module = 'org.hamcrest:hamcrest', version.ref = 'hamcrest' }
+groovy = { module = 'org.apache.groovy:groovy-all', version.ref = 'groovy' }
+spock-core = { module = 'org.spockframework:spock-core', version.ref = 'spock' }
+testcontainers-core = { module = 'org.testcontainers:testcontainers', version.ref = 'testcontainers' }
+testcontainers-spock = { module = 'org.testcontainers:spock', version.ref = 'testcontainers' }
+testcontainers-localstack = { module = 'org.testcontainers:localstack', version.ref = 'testcontainers' }
+
 
 [bundles]
 aws-lambda = ["aws-lambda-core", 'aws-lambda-events','jackson-databind', 'slf4j-nop']
+groovy-test = ["groovy", 'spock-core']
+testcontainers-spock = ['groovy', 'spock-core', 'testcontainers-core', 'testcontainers-spock']
+testcontainers-localstack = ['groovy', 'spock-core', 'testcontainers-localstack', 'testcontainers-spock']
 
 [plugins]
 spotless = { id = 'com.diffplug.spotless', version.ref = 'spotless' }
