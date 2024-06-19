@@ -1,12 +1,12 @@
 package dev.avorakh.shop.dao
 
-import dev.avorakh.shop.function.model.Product
+import dev.avorakh.shop.function.model.Stock
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable
 import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter
 import spock.lang.Shared
 
-class DynamoDbProductDaoTest extends AwsSdkV2DynamoDbLocalstackSpecification {
+class DynamoDbStockDaoTest extends AwsSdkV2DynamoDbLocalstackSpecification {
     @Shared
     DynamoDbEnhancedClient dynamoDbEnhancedClient
 
@@ -20,19 +20,19 @@ class DynamoDbProductDaoTest extends AwsSdkV2DynamoDbLocalstackSpecification {
     def "should successfully create table and verify CRUD operations"() {
 
         given:
-        def tableName = "Product"
+        def tableName = "Stock"
         def productId = "SomeId"
         and:
-        def table = dynamoDbEnhancedClient.table(tableName, DynamoDbSchemas.PRODUCT_TABLE_SCHEMA)
+        def table = dynamoDbEnhancedClient.table(tableName, DynamoDbSchemas.STOCK_TABLE_SCHEMA)
         createTable(table, tableName)
         and:
-        def dao = new DynamoDbProductDao(dynamoDbClient, tableName)
+        def dao = new DynamoDbStockDao(dynamoDbClient, tableName)
 
         when: 'Scan a table if the table is empty'
-        def actualProducts = dao.getAll()
+        def actualStocks = dao.getAll()
         then:
-        actualProducts != null
-        actualProducts.isEmpty()
+        actualStocks != null
+        actualStocks.isEmpty()
 
         when: 'Get the item by using the key if the table is empty'
         def actual = dao.get(productId)
@@ -41,28 +41,27 @@ class DynamoDbProductDaoTest extends AwsSdkV2DynamoDbLocalstackSpecification {
         actual.isEmpty()
 
         and:
-        def newProduct = new Product(id: productId, title: "SomeTitle",
-                description: "some description", price: 10)
+        def newStock = new Stock(productId: productId, count: 5)
 
-        when: 'Put the product data into an Amazon DynamoDB table.'
-        dao.create(newProduct)
+        when: 'Put the stock data into an Amazon DynamoDB table.'
+        dao.create(newStock)
         then:
         noExceptionThrown()
 
         when: 'Scan a table after adding new item'
-        def actualProductsAfterAdding = dao.getAll()
+        def actualStocksAfterAdding = dao.getAll()
         then:
-        actualProductsAfterAdding.size() == 1
+        actualStocksAfterAdding.size() == 1
         when: 'Get the item by using the key after adding new item'
-        def actualProduct = dao.get(productId)
+        def actualStock = dao.get(productId)
         then:
-        actualProduct != null
-        actualProduct.isPresent()
-        actualProduct.get() == newProduct
+        actualStock != null
+        actualStock.isPresent()
+        actualStock.get() == newStock
     }
 
-    def createTable(DynamoDbTable<Product> productTable, String tableName) {
-        productTable.createTable({
+    def createTable(DynamoDbTable<Stock> stockTable, String tableName) {
+        stockTable.createTable({
             builder ->
                 builder.provisionedThroughput(b -> b
                         .readCapacityUnits(10L)
