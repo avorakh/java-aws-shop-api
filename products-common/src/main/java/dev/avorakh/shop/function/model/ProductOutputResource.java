@@ -1,0 +1,18 @@
+package dev.avorakh.shop.function.model;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class ProductOutputResource {
+
+    String id;
+    String title;
+    String description;
+    Integer price;
+    Integer count;
+}
