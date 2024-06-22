@@ -1,0 +1,29 @@
+[versions]
+lombok = '1.18.32'
+freefairLombokVersion = '8.4'
+spotless = '6.25.0'
+pmd-tool = '7.0.0'
+jacoco = '0.8.11'
+junit = '5.10.2'
+shadow = '8.1.1'
+aws-lambda-core = '1.2.3'
+aws-lambda-events = '3.11.6'
+jackson = '2.17.1'
+slf4j = '2.0.13'
+hamcrest = '2.2'
+
+[libraries]
+junit-bom = { module = 'org.junit:junit-bom', version.ref = 'junit' }
+aws-lambda-core =  { module = 'com.amazonaws:aws-lambda-java-core', version.ref = 'aws-lambda-core' }
+aws-lambda-events =  { module = 'com.amazonaws:aws-lambda-java-events', version.ref = 'aws-lambda-events' }
+jackson-databind =   { module = 'com.fasterxml.jackson.core:jackson-databind', version.ref = 'jackson' }
+slf4j-nop =  { module = 'org.slf4j:slf4j-nop', version.ref = 'slf4j' }
+hamcrest =  { module = 'org.hamcrest:hamcrest', version.ref = 'hamcrest' }
+
+[bundles]
+aws-lambda = ["aws-lambda-core", 'aws-lambda-events','jackson-databind', 'slf4j-nop']
+
+[plugins]
+spotless = { id = 'com.diffplug.spotless', version.ref = 'spotless' }
+lombok = { id = 'io.freefair.lombok', version.ref = 'freefairLombokVersion' }
+shadow = { id = 'com.github.johnrengelman.shadow', version.ref = 'shadow' }

@@ -1,0 +1,20 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' apply true
+}
+
+project.description= "get-products-by-id-function"
+
+dependencies {
+    implementation libs.bundles.aws.lambda
+    implementation project(":products-common")
+    testImplementation libs.hamcrest
+    testImplementation project(":test-utils")
+}
+assemble.dependsOn = [shadowJar]
+
+
+
+shadowJar {
+    archiveClassifier.set('aws')
+    mergeServiceFiles()
+}
