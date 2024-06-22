@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class DefaultProductService implements ProductService{
+public class DefaultProductService implements ProductService {
 
     ProductDao productDao;
     StockDao stockDao;
