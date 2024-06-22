@@ -1,21 +1,30 @@
 package dev.avorakh.shop.cdk;
 
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.Size;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.apigateway.*;
+import software.amazon.awscdk.services.dynamodb.Attribute;
+import software.amazon.awscdk.services.dynamodb.AttributeType;
+import software.amazon.awscdk.services.dynamodb.BillingMode;
+import software.amazon.awscdk.services.dynamodb.Table;
 import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.constructs.Construct;
 
+import java.util.List;
+
 public class MyShopBackendJavaStack extends Stack {
 
     public static final String GET = "GET";
+    public static final String PRODUCT_TABLE_NAME = "PRODUCT_TABLE_NAME";
+    public static final String PRODUCT = "Product";
+    public static final String STOCK_TABLE_NAME = "STOCK_TABLE_NAME";
+    public static final String STOCK = "Stock";
 
     public MyShopBackendJavaStack(final Construct scope, final String id) {
         this(scope, id, null);
@@ -23,6 +32,11 @@ public class MyShopBackendJavaStack extends Stack {
 
     public MyShopBackendJavaStack(final Construct scope, final String id, final StackProps props) {
         super(scope, id, props);
+
+        // Create DynamoDB tables
+        var productTable = createDynamoDBTable("ProductTable", PRODUCT, "id");
+        var stockTable = createDynamoDBTable("StockTable", STOCK, "product_id");
+
 
         var getProductsListFunctionName = "getProductsList";
         var getProductsListFunction = new Function(
@@ -32,6 +46,15 @@ public class MyShopBackendJavaStack extends Stack {
                         getProductsListFunctionName,
                         "./../asset/get-products-list-function-aws.jar",
                         "dev.avorakh.shop.function.LambdaHandler::handleRequest"));
+
+        // Add Environment Variables to 'getProductsList' Lambda function
+        getProductsListFunction.addEnvironment(PRODUCT_TABLE_NAME, PRODUCT);
+        getProductsListFunction.addEnvironment(STOCK_TABLE_NAME, STOCK);
+
+        // Grant the 'getProductsList' Lambda function read access to the Product and Stock DynamoDB tables
+        productTable.grantReadData(getProductsListFunction);
+        stockTable.grantReadData(getProductsListFunction);
+
         var getProductsByIdFunctionName = "getProductsById";
         var getProductsByIdFunction = new Function(
                 this,
@@ -89,9 +112,22 @@ public class MyShopBackendJavaStack extends Stack {
                 .code(Code.fromAsset(lambdaCodePath))
                 .handler(handler)
                 .runtime(Runtime.JAVA_21)
-                .timeout(Duration.seconds(10))
-                .memorySize(128)
+                .timeout(Duration.seconds(20))
+                .memorySize(256)
                 .ephemeralStorageSize(Size.mebibytes(512))
+                .build();
+    }
+
+    private Table createDynamoDBTable(String tableId, String tableName, String partitionKey) {
+        return Table.Builder.create(this, tableId)
+                .tableName(tableName)
+                .partitionKey(Attribute.builder()
+                        .name(partitionKey)
+                        .type(AttributeType.STRING)
+                        .build())
+                .billingMode(BillingMode.PROVISIONED)
+                .readCapacity(5)
+                .writeCapacity(5)
                 .build();
     }
 }
