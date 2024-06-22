@@ -2,7 +2,7 @@
 swagger: "2.0"
 info:
   description: "Product Service"
-  version: "1.0.0"
+  version: "1.1.0"
   title: "Swagger Product Service"
 
 host: "vme9h2kyok.execute-api.eu-north-1.amazonaws.com"
@@ -19,7 +19,7 @@ paths:
       tags:
         - "products"
       summary: "Finds Products"
-      description: "Finds avaibilbleProducts"
+      description: "Finds available Products"
       operationId: "getProductsList"
       produces:
         - "application/json"
@@ -33,7 +33,7 @@ paths:
         500:
           description: "Internal server error"
           schema:
-            $ref: "#/definitions/Error1"
+            $ref: "#/definitions/Error"
 
   /products/{productId}:
     get:
@@ -58,11 +58,11 @@ paths:
         404:
           description: "Product not found"
           schema:
-            $ref: "#/definitions/Error2"
+            $ref: "#/definitions/Error"
         500:
           description: "Internal server error"
           schema:
-            $ref: "#/definitions/Error1"
+            $ref: "#/definitions/Error"
 
 definitions:
   Product:
@@ -86,7 +86,11 @@ definitions:
         type: "integer"
         format: "int64"
         example: 10
-  Error1:
+      count:
+        type: "integer"
+        format: "int64"
+        example: 2
+  Error:
     type: "object"
     required:
       - "errorCode"
@@ -99,16 +103,3 @@ definitions:
       message:
         type: "string"
         example: "INTERNAL_SERVER_ERROR"
-  Error2:
-    type: "object"
-    required:
-      - "errorCode"
-      - "message"
-    properties:
-      errorCode:
-        type: "integer"
-        format: "int32"
-        example: 1100
-      message:
-        type: "string"
-        example: "PRODUCT_NOT_EXIST"
