@@ -140,4 +140,70 @@ class DefaultProductServiceTest extends Specification {
         actual.contains(expectedOutput1)
         actual.contains(expectedOutput2)
     }
+
+    def 'should successfully get product by id if product and stock found'() {
+        given:
+        def product = new Product(
+                id: productId,
+                title: productTitle,
+                description: productDescription,
+                price: productPrice
+        )
+        def stock = new Stock(productId: productId, count: productCount)
+
+        when:
+        def actual = service.get(productId)
+        then:
+        1 * productDao.get(productId) >> Optional.of(product)
+        1 * stockDao.get(productId) >> Optional.of(stock)
+        then:
+        actual != null
+        actual.present
+        with(actual.get()) {
+            it.id == productId
+            it.title == productTitle
+            it.description == productDescription
+            it.price == productPrice
+            it.count == productCount
+        }
+    }
+
+
+    def 'should get product by id and return empty Optional if only product found'() {
+        given:
+        def product = new Product(
+                id: productId,
+                title: productTitle,
+                description: productDescription,
+                price: productPrice
+        )
+
+        when:
+        def actual = service.get(productId)
+        then:
+        1 * productDao.get(productId) >> Optional.of(product)
+        1 * stockDao.get(productId) >> Optional.empty()
+        then:
+        actual != null
+        actual.present
+        with(actual.get()) {
+            it.id == productId
+            it.title == productTitle
+            it.description == productDescription
+            it.price == productPrice
+            it.count == 0
+        }
+    }
+
+    def 'should successfully get product by id if product and stock no found'() {
+
+        when:
+        def actual = service.get(productId)
+        then:
+        1 * productDao.get(productId) >> Optional.empty()
+        0 * stockDao._
+        then:
+        actual != null
+        actual.empty
+    }
 }

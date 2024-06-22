@@ -7,6 +7,7 @@ import dev.avorakh.shop.function.model.ProductInputResource;
 import dev.avorakh.shop.function.model.ProductOutputResource;
 import dev.avorakh.shop.function.model.Stock;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
@@ -47,6 +48,15 @@ public class DefaultProductService implements ProductService {
         return allFoundProducts.stream()
                 .map(product -> toOutputResource(product, getProductCount))
                 .toList();
+    }
+
+    @Override
+    public Optional<ProductOutputResource> get(String id) {
+
+        Function<String, Integer> getProductCountById =
+                (productId) -> stockDao.get(productId).map(Stock::getCount).orElse(0);
+
+        return productDao.get(id).map(product -> toOutputResource(product, getProductCountById));
     }
 
     ProductOutputResource toOutputResource(Product product, Function<String, Integer> getProductCount) {
