@@ -4,7 +4,11 @@ import dev.avorakh.shop.dao.ProductDao;
 import dev.avorakh.shop.dao.StockDao;
 import dev.avorakh.shop.function.model.Product;
 import dev.avorakh.shop.function.model.ProductInputResource;
+import dev.avorakh.shop.function.model.ProductOutputResource;
 import dev.avorakh.shop.function.model.Stock;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,5 +34,30 @@ public class DefaultProductService implements ProductService {
         productDao.create(newProduct);
         stockDao.create(newStock);
         return id;
+    }
+
+    @Override
+    public List<ProductOutputResource> getAll() {
+
+        var allFoundProducts = productDao.getAll();
+        var foundStockMap = stockDao.getAll().stream().collect(Collectors.toMap(Stock::getProductId, Stock::getCount));
+
+        Function<String, Integer> getProductCount = (id) -> foundStockMap.getOrDefault(id, 0);
+
+        return allFoundProducts.stream()
+                .map(product -> toOutputResource(product, getProductCount))
+                .toList();
+    }
+
+    ProductOutputResource toOutputResource(Product product, Function<String, Integer> getProductCount) {
+        var productId = product.getId();
+
+        return ProductOutputResource.builder()
+                .id(productId)
+                .title(product.getTitle())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .count(getProductCount.apply(productId))
+                .build();
     }
 }
