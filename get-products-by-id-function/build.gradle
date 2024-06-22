@@ -5,10 +5,16 @@ plugins {
 project.description= "get-products-by-id-function"
 
 dependencies {
+    implementation platform(libs.aws.sdk.v2.bom.get().toString())
     implementation libs.bundles.aws.lambda
+    implementation 'software.amazon.awssdk:dynamodb'
+    implementation 'software.amazon.awssdk:dynamodb-enhanced'
     implementation project(":products-common")
-    testImplementation libs.hamcrest
+    implementation project(":dynamodb-dao")
+    implementation project(":product-svc")
+
     testImplementation project(":test-utils")
+    testImplementation libs.bundles.groovy.test
 }
 assemble.dependsOn = [shadowJar]
 

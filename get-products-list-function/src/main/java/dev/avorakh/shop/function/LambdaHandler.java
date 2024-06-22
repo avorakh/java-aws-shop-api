@@ -26,8 +26,8 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
     public LambdaHandler() {
         var dynamoDbClient = DynamoDbClient.builder().build();
-        var productTableName = System.getenv("PRODUCT_TABLE_NAME"); // "Product";
-        var stockTableName = System.getenv("STOCK_TABLE_NAME"); // "Stock";
+        var productTableName = System.getenv("PRODUCT_TABLE_NAME");
+        var stockTableName = System.getenv("STOCK_TABLE_NAME");
         var productDao = new DynamoDbProductDao(dynamoDbClient, productTableName);
         var stockDao = new DynamoDbStockDao(dynamoDbClient, stockTableName);
         this.productService = new DefaultProductService(productDao, stockDao);
