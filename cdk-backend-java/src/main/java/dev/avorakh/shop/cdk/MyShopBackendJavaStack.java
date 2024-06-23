@@ -131,7 +131,6 @@ public class MyShopBackendJavaStack extends Stack {
     private void doDeployment(RestApi api) {
         Deployment.Builder.create(this, "ProductServiceDevDeployment")
                 .api(api)
-                .stageName("dev")
                 .build();
     }
 
