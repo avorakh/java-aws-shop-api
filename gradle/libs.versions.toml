@@ -12,6 +12,7 @@ aws-sdk-v2 = '2.23.14'
 jackson = '2.17.1'
 slf4j = '2.0.13'
 logback = '1.4.14'
+commons-lang3 = '3.14.0'
 hamcrest = '2.2'
 groovy = '4.0.18'
 spock = '2.3-groovy-4.0'
@@ -26,6 +27,7 @@ slf4j-api = { module = 'org.slf4j:slf4j-api', version.ref = 'slf4j' }
 logback = { module = 'ch.qos.logback:logback-classic', version.ref = 'logback' }
 jackson-databind =   { module = 'com.fasterxml.jackson.core:jackson-databind', version.ref = 'jackson' }
 slf4j-nop =  { module = 'org.slf4j:slf4j-nop', version.ref = 'slf4j' }
+commons-lang3  = { module = 'org.apache.commons:commons-lang3', version.ref = 'commons-lang3' }
 hamcrest =  { module = 'org.hamcrest:hamcrest', version.ref = 'hamcrest' }
 groovy = { module = 'org.apache.groovy:groovy-all', version.ref = 'groovy' }
 spock-core = { module = 'org.spockframework:spock-core', version.ref = 'spock' }
@@ -35,7 +37,7 @@ testcontainers-localstack = { module = 'org.testcontainers:localstack', version.
 
 
 [bundles]
-aws-lambda = ["aws-lambda-core", 'aws-lambda-events','jackson-databind', 'slf4j-nop']
+aws-lambda = ["aws-lambda-core", 'aws-lambda-events','jackson-databind', 'slf4j-nop', 'commons-lang3']
 groovy-test = ["groovy", 'spock-core']
 testcontainers-spock = ['groovy', 'spock-core', 'testcontainers-core', 'testcontainers-spock']
 testcontainers-localstack = ['groovy', 'spock-core', 'testcontainers-localstack', 'testcontainers-spock']
