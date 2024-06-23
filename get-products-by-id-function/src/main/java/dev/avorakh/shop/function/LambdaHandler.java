@@ -9,16 +9,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.avorakh.shop.dao.DynamoDbProductDao;
 import dev.avorakh.shop.dao.DynamoDbStockDao;
 import dev.avorakh.shop.function.model.CommonUtils;
+import dev.avorakh.shop.function.model.ErrorDetail;
+import dev.avorakh.shop.function.model.ErrorResource;
 import dev.avorakh.shop.svc.DefaultProductService;
 import dev.avorakh.shop.svc.ProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
+import java.util.List;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
+
+    private static final String VALIDATION_ERROR = "VALIDATION_ERROR";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -42,8 +49,14 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
             logger.log("LambdaHandler call input - [%s]".formatted(inputEvent), LogLevel.INFO);
 
             String id = input.getPathParameters().get("productId");
-
             logger.log("productId - [%s]".formatted(id), LogLevel.INFO);
+
+            if (StringUtils.isBlank(id)) {
+                var validationError = new ErrorDetail("the request body should be present");
+                var errorResource = new ErrorResource(VALIDATION_ERROR, 1001, List.of(validationError));
+                var body = objectMapper.writeValueAsString(errorResource);
+                return CommonUtils.toAPIGatewayV2HTTPResponse(400, body);
+            }
 
             var foundProduct = productService.get(id);
 
