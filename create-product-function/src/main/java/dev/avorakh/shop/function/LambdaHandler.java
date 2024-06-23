@@ -7,11 +7,8 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.avorakh.shop.dao.DynamoDbProductDao;
-import dev.avorakh.shop.dao.DynamoDbStockDao;
+import dev.avorakh.shop.dao.*;
 import dev.avorakh.shop.function.model.*;
-import dev.avorakh.shop.svc.DefaultProductService;
-import dev.avorakh.shop.svc.ProductService;
 import java.util.List;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -29,15 +26,13 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    ProductService productService;
+    TransactionalProductDao productDao;
 
     public LambdaHandler() {
         var dynamoDbClient = DynamoDbClient.builder().build();
         var productTableName = System.getenv("PRODUCT_TABLE_NAME");
         var stockTableName = System.getenv("STOCK_TABLE_NAME");
-        var productDao = new DynamoDbProductDao(dynamoDbClient, productTableName);
-        var stockDao = new DynamoDbStockDao(dynamoDbClient, stockTableName);
-        this.productService = new DefaultProductService(productDao, stockDao);
+        this.productDao = new DynamoDbTransactionalProductDao(dynamoDbClient, productTableName, stockTableName);
     }
 
     @Override
@@ -62,7 +57,7 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
             String productId = UUID.randomUUID().toString();
 
-            productService.create(productId, newProduct);
+            productDao.create(productId, newProduct);
 
             var body = objectMapper.writeValueAsString(new IdResource(productId));
 

@@ -2,12 +2,12 @@ package dev.avorakh.shop.function
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent
 import com.fasterxml.jackson.databind.ObjectMapper
+import dev.avorakh.shop.dao.TransactionalProductDao
 import dev.avorakh.shop.function.model.ErrorResource
 import dev.avorakh.shop.function.model.IdResource
 import dev.avorakh.shop.function.model.ProductInputResource
 import dev.avorakh.shop.function.test.TestContext
 import dev.avorakh.shop.function.test.TestUtils
-import dev.avorakh.shop.svc.ProductService
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -19,12 +19,12 @@ class LambdaHandlerTest extends Specification {
     def objectMapper = new ObjectMapper()
 
     @Shared
-    ProductService productService
+    TransactionalProductDao productDao
     LambdaHandler handler
 
     def setup() {
-        productService = Mock()
-        handler = new LambdaHandler(productService)
+        productDao = Mock()
+        handler = new LambdaHandler(productDao)
     }
 
     def "should successfully create product"() {
@@ -36,7 +36,7 @@ class LambdaHandlerTest extends Specification {
         def actual = handler.handleRequest(event, new TestContext())
 
         then:
-        1 * productService.create(_ as String, _ as ProductInputResource)
+        1 * productDao.create(_ as String, _ as ProductInputResource)
 
         then:
         actual != null
@@ -60,7 +60,7 @@ class LambdaHandlerTest extends Specification {
         def actual = handler.handleRequest(event, new TestContext())
 
         then:
-        0 * productService.create(_ as String, _ as ProductInputResource)
+        0 * productDao.create(_ as String, _ as ProductInputResource)
 
         then:
         actual != null
@@ -93,7 +93,7 @@ class LambdaHandlerTest extends Specification {
         def actual = handler.handleRequest(event, new TestContext())
 
         then:
-        0 * productService.create(_ as String, _ as ProductInputResource)
+        0 * productDao.create(_ as String, _ as ProductInputResource)
 
         then:
         actual != null
@@ -125,7 +125,7 @@ class LambdaHandlerTest extends Specification {
         def actual = handler.handleRequest(event, new TestContext())
 
         then:
-        1 * productService.create(_ as String, _ as ProductInputResource) >> { throw new RuntimeException() }
+        1 * productDao.create(_ as String, _ as ProductInputResource) >> { throw new RuntimeException() }
 
         then:
         actual != null
