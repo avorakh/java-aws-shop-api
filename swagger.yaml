@@ -136,10 +136,12 @@ definitions:
       price:
         type: "integer"
         format: "int64"
+        minimum: 1
         example: 10
       count:
         type: "integer"
         format: "int64"
+        minimum: 0
         example: 2
   Id:
     type: "object"
@@ -149,6 +151,14 @@ definitions:
       id:
         type: "string"
         example: "03f42ea7-cf14-4ac4-a93b-66f3fdc60c69"
+  ErrorDetail:
+    type: "object"
+    required:
+      - "errorMessage"
+    properties:
+      errorMessage:
+        type: "string"
+        example: "Some Error Details"
   Error:
     type: "object"
     required:
@@ -162,3 +172,7 @@ definitions:
       message:
         type: "string"
         example: "INTERNAL_SERVER_ERROR"
+      errors:
+        type: "array"
+        items:
+          $ref: "#/definitions/ErrorDetail"
