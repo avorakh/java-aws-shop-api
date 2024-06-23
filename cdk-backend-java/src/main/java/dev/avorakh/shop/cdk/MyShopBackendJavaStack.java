@@ -17,6 +17,7 @@ import software.amazon.awscdk.services.lambda.Runtime;
 import software.constructs.Construct;
 
 import java.util.List;
+import java.util.Map;
 
 public class MyShopBackendJavaStack extends Stack {
 
@@ -25,6 +26,10 @@ public class MyShopBackendJavaStack extends Stack {
     public static final String PRODUCT = "Product";
     public static final String STOCK_TABLE_NAME = "STOCK_TABLE_NAME";
     public static final String STOCK = "Stock";
+    public static final String JSON_P_TITLE = "title";
+    public static final String JSON_P_DESCRIPTION = "description";
+    public static final String JSON_P_PRICE = "price";
+    public static final String JSON_P_COUNT = "count";
 
     public MyShopBackendJavaStack(final Construct scope, final String id) {
         this(scope, id, null);
@@ -72,12 +77,49 @@ public class MyShopBackendJavaStack extends Stack {
         productTable.grantReadData(getProductsByIdFunction);
         stockTable.grantReadData(getProductsByIdFunction);
 
+        var createProductFunctionName = "createProduct";
+        var createProductFunction = new Function(
+                this,
+                createProductFunctionName,
+                getLambdaFunctionProps(
+                        createProductFunctionName,
+                        "./../asset/create-product-function-aws.jar",
+                        "dev.avorakh.shop.function.LambdaHandler::handleRequest"));
+
+        // Add Environment Variables to 'createProduct' Lambda function
+        createProductFunction.addEnvironment(PRODUCT_TABLE_NAME, PRODUCT);
+        createProductFunction.addEnvironment(STOCK_TABLE_NAME, STOCK);
+
+        // Grant the 'createProduct' Lambda function read access to the Product and Stock DynamoDB tables
+        productTable.grantReadWriteData(createProductFunction);
+        stockTable.grantReadWriteData(createProductFunction);
+
         var api = createApiGateway();
 
         var products = api.getRoot().addResource("products");
 
         var getAllProducts = new LambdaIntegration(getProductsListFunction);
         products.addMethod(GET, getAllProducts);
+
+        var newNewProductProperties = Map.of(
+                JSON_P_TITLE, JsonSchema.builder().type(JsonSchemaType.STRING).build(),
+                JSON_P_DESCRIPTION, JsonSchema.builder().type(JsonSchemaType.STRING).build(),
+                JSON_P_PRICE, JsonSchema.builder().type(JsonSchemaType.INTEGER).build(),
+                JSON_P_COUNT, JsonSchema.builder().type(JsonSchemaType.INTEGER).build()
+        );
+
+        var userModel = api.addModel("NewProductModel",
+                ModelOptions.builder().schema(JsonSchema.builder().type(JsonSchemaType.OBJECT)
+                        .properties(newNewProductProperties)
+                        .required(List.of(JSON_P_TITLE, JSON_P_DESCRIPTION, JSON_P_PRICE, JSON_P_COUNT))
+                        .build()).build());
+
+        var createProduct = new LambdaIntegration(createProductFunction);
+        products.addMethod(
+                "POST",
+                createProduct,
+                MethodOptions.builder().requestModels(Map.of("application/json", userModel)).build()
+        );
 
         var productById = products.addResource("{productId}");
         var getOneIntegration = new LambdaIntegration(getProductsByIdFunction);
