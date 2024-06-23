@@ -32,12 +32,12 @@ paths:
           schema:
             $ref: "#/definitions/ProductInput"
       responses:
-        200:
+        201:
           description: "Successful operation"
           schema:
             $ref: "#/definitions/Id"
         400:
-          description: "Validationr error"
+          description: "Validation error"
           schema:
             $ref: "#/definitions/Error"
         500:
