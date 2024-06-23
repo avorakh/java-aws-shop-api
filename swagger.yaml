@@ -20,15 +20,17 @@ paths:
       summary: "Create new product"
       description: "Create a new product"
       operationId: "createProduct"
+      consumes:
+        - "application/json"
+      requestBody:
+        description: "Create a new product"
+        content:
+          application/json:
+            schema:
+              $ref: "#/definitions/ProductInput"
+        required: true
       produces:
         - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Create a new product"
-          required: true
-          schema:
-            $ref: "#/definitions/ProductInput"
       responses:
         200:
           description: "Successful operation"
