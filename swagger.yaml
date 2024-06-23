@@ -2,7 +2,7 @@
 swagger: "2.0"
 info:
   description: "Product Service"
-  version: "1.1.0"
+  version: "2.0.0"
   title: "Swagger Product Service"
 
 host: "vme9h2kyok.execute-api.eu-north-1.amazonaws.com"
@@ -10,11 +10,38 @@ basePath: "/dev"
 tags:
   - name: "products"
     description: "Products API"
-
 schemes:
   - "https"
 paths:
   /products:
+    post:
+      tags:
+        - "products"
+      summary: "Create new product"
+      description: "Create a new product"
+      operationId: "createProduct"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Create a new product"
+          required: true
+          schema:
+            $ref: "#/definitions/ProductInput"
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            $ref: "#/definitions/Id"
+        400:
+          description: "Validationr error"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/Error"
     get:
       tags:
         - "products"
@@ -63,8 +90,29 @@ paths:
           description: "Internal server error"
           schema:
             $ref: "#/definitions/Error"
-
 definitions:
+  ProductInput:
+    type: "object"
+    required:
+      - "title"
+      - "description"
+      - "price"
+      - "count"
+    properties:
+      title:
+        type: "string"
+        example: "Product Title"
+      description:
+        type: "string"
+        example: "Short Product Description"
+      price:
+        type: "integer"
+        format: "int64"
+        example: 10
+      count:
+        type: "integer"
+        format: "int64"
+        example: 2
   Product:
     type: "object"
     required:
@@ -72,6 +120,7 @@ definitions:
       - "title"
       - "description"
       - "price"
+      - "count"
     properties:
       id:
         type: "string"
@@ -90,6 +139,14 @@ definitions:
         type: "integer"
         format: "int64"
         example: 2
+  Id:
+    type: "object"
+    required:
+      - "id"
+    properties:
+      id:
+        type: "string"
+        example: "03f42ea7-cf14-4ac4-a93b-66f3fdc60c69"
   Error:
     type: "object"
     required:
