@@ -29,7 +29,6 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-
     ProductService productService;
 
     public LambdaHandler() {
@@ -75,7 +74,8 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
         }
     }
 
-    private static APIGatewayV2HTTPResponse toValidationErrorResponse(List<ErrorDetail> validationErrors) throws JsonProcessingException {
+    private static APIGatewayV2HTTPResponse toValidationErrorResponse(List<ErrorDetail> validationErrors)
+            throws JsonProcessingException {
         var errorResource = new ErrorResource(VALIDATION_ERROR, 1001, validationErrors);
         var body = objectMapper.writeValueAsString(errorResource);
         return CommonUtils.toAPIGatewayV2HTTPResponse(400, body);

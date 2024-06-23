@@ -13,13 +13,12 @@ import dev.avorakh.shop.function.model.ErrorDetail;
 import dev.avorakh.shop.function.model.ErrorResource;
 import dev.avorakh.shop.svc.DefaultProductService;
 import dev.avorakh.shop.svc.ProductService;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-
-import java.util.List;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
