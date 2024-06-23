@@ -20,6 +20,8 @@ paths:
       summary: "Create new product"
       description: "Create a new product"
       operationId: "createProduct"
+      consumes:
+        - "application/json"
       produces:
         - "application/json"
       parameters:
