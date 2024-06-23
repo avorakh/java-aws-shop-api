@@ -64,6 +64,14 @@ public class MyShopBackendJavaStack extends Stack {
                         "./../asset/get-products-by-id-function-aws.jar",
                         "dev.avorakh.shop.function.LambdaHandler::handleRequest"));
 
+        // Add Environment Variables to 'getProductsById' Lambda function
+        getProductsByIdFunction.addEnvironment(PRODUCT_TABLE_NAME, PRODUCT);
+        getProductsByIdFunction.addEnvironment(STOCK_TABLE_NAME, STOCK);
+
+        // Grant the 'getProductsById' Lambda function read access to the Product and Stock DynamoDB tables
+        productTable.grantReadData(getProductsByIdFunction);
+        stockTable.grantReadData(getProductsByIdFunction);
+
         var api = createApiGateway();
 
         var products = api.getRoot().addResource("products");
