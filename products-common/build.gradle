@@ -2,4 +2,7 @@ project.description= "products-common"
 
 dependencies {
     implementation libs.aws.lambda.events
+    implementation libs.commons.lang3
+
+    testImplementation libs.bundles.groovy.test
 }

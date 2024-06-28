@@ -1,0 +1,22 @@
+project.description= "product-fill-example-data"
+
+dependencies {
+    implementation platform(libs.aws.sdk.v2.bom.get().toString())
+    implementation 'software.amazon.awssdk:dynamodb'
+    implementation 'software.amazon.awssdk:dynamodb-enhanced'
+    implementation 'software.amazon.awssdk:sso'
+    implementation 'software.amazon.awssdk:ssooidc'
+
+    implementation libs.slf4j.api
+    implementation libs.logback
+
+    implementation project(":products-common")
+    implementation project(":dynamodb-dao")
+    implementation project(":product-svc")
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "dev.avorakh.shop.examples.data.Application"
+    }
+}

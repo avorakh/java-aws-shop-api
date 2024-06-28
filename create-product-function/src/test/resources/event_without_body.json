@@ -1,0 +1,22 @@
+{
+  "headers": {
+    "accept": "*/*",
+    "content-type": "application/json",
+    "Host": "demo-test.execute-api.eu-north-1.amazonaws.com",
+    "User-Agent": "curl/7.81.0",
+    "X-Amzn-Trace-Id": "Root=1-666af7fc-01e58b113de23bbf5b6cce4d",
+    "X-Forwarded-For": "109.243.128.130",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "isBase64Encoded": false,
+  "requestContext": {
+    "accountId": "891377020864",
+    "stage": "test",
+    "apiId": "5h06nuc9j6",
+    "domainName": "5h06nuc9j6.execute-api.eu-north-1.amazonaws.com",
+    "domainPrefix": "5h06nuc9j6",
+    "timeEpoch": 0,
+    "requestId": "7c6dd09b-f905-4e11-a756-957ebd882981"
+  }
+}

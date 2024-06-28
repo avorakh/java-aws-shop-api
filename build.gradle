@@ -6,11 +6,12 @@ plugins {
 
 group = 'dev.avorakh.shop'
 
-rootProject.version = '0.1.0'
+rootProject.version = '0.2.0'
 
 subprojects {
 
     apply plugin: 'java'
+    apply plugin: 'groovy'
     apply plugin: 'jvm-test-suite'
     apply plugin: 'jacoco'
     apply plugin: 'com.diffplug.spotless'
