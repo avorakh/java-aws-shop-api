@@ -1,10 +1,13 @@
 rootProject.name = 'java-aws-shop-api'
 
+// Common modules
 include 'products-common'
-include 'get-products-list-function'
-include 'get-products-by-id-function'
-include 'create-product-function'
 include 'test-utils'
 include 'dynamodb-dao'
 include 'product-svc'
 include 'product-fill-example-data'
+// Product Service lambda functions
+include 'get-products-list-function'
+include 'get-products-by-id-function'
+include 'create-product-function'
+// Import Service lambda functions
