@@ -7,6 +7,9 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.avorakh.shop.common.utils.ResponseCommonUtils;
+import dev.avorakh.shop.common.utils.response.ErrorDetail;
+import dev.avorakh.shop.common.utils.response.ErrorResource;
 import dev.avorakh.shop.dao.*;
 import dev.avorakh.shop.function.model.*;
 import java.util.List;
@@ -61,11 +64,11 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
             var body = objectMapper.writeValueAsString(new IdResource(productId));
 
-            return CommonUtils.toAPIGatewayV2HTTPResponse(201, body);
+            return ResponseCommonUtils.toAPIGatewayV2HTTPResponse(201, body);
         } catch (Exception e) {
             logger.log(e.getMessage(), LogLevel.ERROR);
 
-            return CommonUtils.toErrorAPIGatewayV2HTTPResponse(500, INTERNAL_SERVER_ERROR, 1000);
+            return ResponseCommonUtils.toErrorAPIGatewayV2HTTPResponse(500, INTERNAL_SERVER_ERROR, 1000);
         }
     }
 
@@ -73,6 +76,6 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
             throws JsonProcessingException {
         var errorResource = new ErrorResource(VALIDATION_ERROR, 1001, validationErrors);
         var body = objectMapper.writeValueAsString(errorResource);
-        return CommonUtils.toAPIGatewayV2HTTPResponse(400, body);
+        return ResponseCommonUtils.toAPIGatewayV2HTTPResponse(400, body);
     }
 }

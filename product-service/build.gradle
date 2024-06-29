@@ -1,0 +1,5 @@
+project.description= "product-service"
+
+subprojects {
+
+}

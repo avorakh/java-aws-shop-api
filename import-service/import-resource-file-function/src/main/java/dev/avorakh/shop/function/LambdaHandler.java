@@ -6,9 +6,9 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import com.amazonaws.services.lambda.runtime.logging.LogLevel;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.avorakh.shop.function.model.CommonUtils;
-import dev.avorakh.shop.function.model.ErrorDetail;
-import dev.avorakh.shop.function.model.ErrorResource;
+import dev.avorakh.shop.common.utils.ResponseCommonUtils;
+import dev.avorakh.shop.common.utils.response.ErrorDetail;
+import dev.avorakh.shop.common.utils.response.ErrorResource;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
                 var validationError = new ErrorDetail("the 'name' query parameter should be present");
                 var errorResource = new ErrorResource("VALIDATION_ERROR", 1002, List.of(validationError));
                 var body = objectMapper.writeValueAsString(errorResource);
-                return CommonUtils.toAPIGatewayV2HTTPResponse(400, body);
+                return ResponseCommonUtils.toAPIGatewayV2HTTPResponse(400, body);
             }
 
             String key = uploadFolder + "/" + name;
@@ -62,10 +62,10 @@ public class LambdaHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
             var body = objectMapper.writeValueAsString(Map.of("uploadUrl", uploadUrl));
 
-            return CommonUtils.toAPIGatewayV2HTTPResponse(200, body);
+            return ResponseCommonUtils.toAPIGatewayV2HTTPResponse(200, body);
         } catch (Exception e) {
             logger.log(e.getMessage(), LogLevel.ERROR);
-            return CommonUtils.toErrorAPIGatewayV2HTTPResponse(500, "INTERNAL_SERVER_ERROR", 1000);
+            return ResponseCommonUtils.toErrorAPIGatewayV2HTTPResponse(500, "INTERNAL_SERVER_ERROR", 1000);
         }
     }
 

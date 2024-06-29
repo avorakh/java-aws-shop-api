@@ -1,4 +1,4 @@
-package dev.avorakh.shop.function.model;
+package dev.avorakh.shop.common.utils.response;
 
 import java.util.List;
 import lombok.*;

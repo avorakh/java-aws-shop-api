@@ -2,8 +2,9 @@ package dev.avorakh.shop.function
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent
 import com.fasterxml.jackson.databind.ObjectMapper
+import dev.avorakh.shop.common.utils.response.ErrorResource
 import dev.avorakh.shop.dao.TransactionalProductDao
-import dev.avorakh.shop.function.model.ErrorResource
+
 import dev.avorakh.shop.function.model.IdResource
 import dev.avorakh.shop.function.model.ProductInputResource
 import dev.avorakh.shop.function.test.TestContext
