@@ -1,6 +1,11 @@
 project.description= "test-utils"
 
 dependencies {
+    implementation platform(libs.aws.sdk.v2.bom.get().toString())
+
     implementation libs.aws.lambda.core
     implementation libs.slf4j.nop
+    implementation libs.bundles.testcontainers.localstack
+
+    implementation 'software.amazon.awssdk:auth'
 }

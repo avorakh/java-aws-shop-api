@@ -1,0 +1,5 @@
+project.description= "common-utils"
+
+dependencies {
+    implementation libs.aws.lambda.events
+}

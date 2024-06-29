@@ -1,0 +1,8 @@
+project.description= "product-svc"
+
+dependencies {
+    implementation project(":product-service:dynamodb-dao")
+    implementation project(":product-service:products-common")
+
+    testImplementation libs.bundles.groovy.test
+}

@@ -1,0 +1,27 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' apply true
+}
+
+project.description= "get-products-by-id-function"
+
+dependencies {
+    implementation platform(libs.aws.sdk.v2.bom.get().toString())
+    implementation libs.bundles.aws.lambda
+    implementation 'software.amazon.awssdk:dynamodb'
+    implementation 'software.amazon.awssdk:dynamodb-enhanced'
+    implementation project(":product-service:products-common")
+    implementation project(":product-service:dynamodb-dao")
+    implementation project(":product-service:product-svc")
+    implementation project(":common-utils")
+
+    testImplementation project(":test-utils")
+    testImplementation libs.bundles.groovy.test
+}
+assemble.dependsOn = [shadowJar]
+
+
+
+shadowJar {
+    archiveClassifier.set('aws')
+    mergeServiceFiles()
+}

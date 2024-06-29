@@ -1,0 +1,25 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' apply true
+}
+
+project.description= "import-resource-file-function"
+
+dependencies {
+    implementation platform(libs.aws.sdk.v2.bom.get().toString())
+    implementation libs.bundles.aws.lambda
+    implementation 'software.amazon.awssdk:s3'
+    implementation project(":common-utils")
+
+    testImplementation project(":test-utils")
+    testImplementation libs.bundles.groovy.test
+    testImplementation libs.slf4j.api
+    testImplementation libs.bundles.testcontainers.localstack
+}
+assemble.dependsOn = [shadowJar]
+
+
+
+shadowJar {
+    archiveClassifier.set('aws')
+    mergeServiceFiles()
+}

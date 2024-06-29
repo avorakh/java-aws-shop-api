@@ -1,0 +1,9 @@
+project.description= "products-common"
+
+dependencies {
+//    implementation libs.aws.lambda.events
+    implementation libs.commons.lang3
+    implementation project(":common-utils")
+
+    testImplementation libs.bundles.groovy.test
+}
