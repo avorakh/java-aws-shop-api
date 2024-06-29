@@ -2,7 +2,7 @@ project.description= "dynamodb-dao"
 
 dependencies {
     implementation platform(libs.aws.sdk.v2.bom.get().toString())
-    implementation project(":products-common")
+    implementation project(":product-service:products-common")
     implementation 'software.amazon.awssdk:dynamodb'
     implementation 'software.amazon.awssdk:dynamodb-enhanced'
 
