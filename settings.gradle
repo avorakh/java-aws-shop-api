@@ -2,7 +2,6 @@ rootProject.name = 'java-aws-shop-api'
 
 // Common modules
 include 'common-utils'
-
 include 'test-utils'
 
 // Product Service lambda functions
