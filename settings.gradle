@@ -12,3 +12,4 @@ include 'get-products-by-id-function'
 include 'create-product-function'
 // Import Service lambda functions
 include 'import-resource-file-function'
+include 'import-file-parser-function'
