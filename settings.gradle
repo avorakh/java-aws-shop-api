@@ -10,6 +10,8 @@ include 'product-fill-example-data'
 include 'get-products-list-function'
 include 'get-products-by-id-function'
 include 'create-product-function'
-// Import Service lambda functions
-include 'import-resource-file-function'
-include 'import-file-parser-function'
+
+// Import Service
+include ':import-service'
+include ':import-service:import-file-parser-function'
+include ':import-service:import-resource-file-function'
