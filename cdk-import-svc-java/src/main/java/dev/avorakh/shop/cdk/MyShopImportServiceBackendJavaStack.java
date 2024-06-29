@@ -8,10 +8,8 @@ import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
 import software.amazon.awscdk.services.lambda.Runtime;
-import software.amazon.awscdk.services.s3.BlockPublicAccess;
-import software.amazon.awscdk.services.s3.Bucket;
-import software.amazon.awscdk.services.s3.CorsRule;
-import software.amazon.awscdk.services.s3.HttpMethods;
+import software.amazon.awscdk.services.s3.*;
+import software.amazon.awscdk.services.s3.notifications.LambdaDestination;
 import software.constructs.Construct;
 
 import java.util.List;
@@ -55,7 +53,46 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
 
         var importProductsFile = new LambdaIntegration(importProductsFileFunction);
 
-        var preSignedURLResponse = Model.Builder.create(this, "PreSignedURLResponse")
+        var preSignedURLResponse = getPreSignedURLResponse(api);
+
+        importResource.addMethod("GET", importProductsFile, MethodOptions.builder()
+                .methodResponses(getMethodResponses(preSignedURLResponse))
+                .requestParameters(Map.of("method.request.querystring.name", true))
+                .requestValidatorOptions(RequestValidatorOptions.builder()
+                        .validateRequestParameters(true)
+                        .build())
+                .build());
+
+        doDeployment(api);
+
+        // The 'importFileParser' Lambda function
+        String importFileParserFunctionName = "importFileParser";
+        var importFileParserFunction = new Function(
+                this,
+                importFileParserFunctionName,
+                getLambdaFunctionProps(
+                        importFileParserFunctionName,
+                        "./../asset/import-file-parser-function-aws.jar",
+                        "dev.avorakh.shop.function.LambdaHandler::handleRequest"));
+
+        // Add Environment Variables to 'importFileParser' Lambda function
+        importFileParserFunction.addEnvironment("UPLOAD_FOLDER", "uploaded");
+        importFileParserFunction.addEnvironment("PARSED_FOLDER", "parsed");
+
+        // Grant the Lambda function read permissions on the bucket
+        s3Bucket.grantReadWrite(importFileParserFunction);
+
+        // Configure the S3 event to trigger the Lambda function
+        s3Bucket.addEventNotification(EventType.OBJECT_CREATED_PUT, new LambdaDestination(importFileParserFunction),
+                NotificationKeyFilter.builder()
+                        .prefix("uploaded/")
+                        .suffix(".csv")
+                        .build());
+
+    }
+
+    private @NotNull Model getPreSignedURLResponse(RestApi api) {
+        return Model.Builder.create(this, "PreSignedURLResponse")
                 .restApi(api)
                 .schema(JsonSchema.builder()
                         .schema(JsonSchemaVersion.DRAFT4)
@@ -64,22 +101,18 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
                 .description("Returns Pre-Signed URL to upload CSV")
                 .contentType(APPLICATION_JSON)
                 .build();
+    }
 
-        importResource.addMethod("GET", importProductsFile, MethodOptions.builder()
-                .methodResponses(List.of(
-                        MethodResponse.builder()
-                                .statusCode("200")
-                                .responseModels(Map.of(APPLICATION_JSON, preSignedURLResponse))
-                                .build(),
-                        MethodResponse.builder()
-                                .statusCode("500")
-                                .responseModels(Map.of(APPLICATION_JSON, Model.ERROR_MODEL))
-                                .build()))
-                .requestParameters(Map.of("method.request.querystring.name", true))
-                .requestValidatorOptions(RequestValidatorOptions.builder()
-                        .validateRequestParameters(true)
-                        .build())
-                .build());
+    private @NotNull List<MethodResponse> getMethodResponses(Model preSignedURLResponse) {
+        return List.of(
+                MethodResponse.builder()
+                        .statusCode("200")
+                        .responseModels(Map.of(APPLICATION_JSON, preSignedURLResponse))
+                        .build(),
+                MethodResponse.builder()
+                        .statusCode("500")
+                        .responseModels(Map.of(APPLICATION_JSON, Model.ERROR_MODEL))
+                        .build());
     }
 
     private @NotNull Bucket createBucket(String bucketName) {
