@@ -4,9 +4,10 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.avorakh.shop.function.model.ErrorResource
-import dev.avorakh.shop.function.test.LocalstackAwsSdkV2TestUtil
+import dev.avorakh.shop.localstack.LocalstackAwsSdkV2TestUtil
 import dev.avorakh.shop.function.test.TestContext
 import dev.avorakh.shop.function.test.TestUtils
+import dev.avorakh.shop.test.spock.AbstractLocalstackSpecification
 import org.testcontainers.containers.localstack.LocalStackContainer
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import spock.lang.Shared

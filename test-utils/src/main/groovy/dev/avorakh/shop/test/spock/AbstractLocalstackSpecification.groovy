@@ -1,11 +1,12 @@
-package dev.avorakh.shop.dao
+package dev.avorakh.shop.test.spock
 
+import dev.avorakh.shop.localstack.LocalstackConfigurable
 import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.utility.DockerImageName
 import spock.lang.Shared
 import spock.lang.Specification
 
-abstract class AbstractLocalstackSpecification  extends Specification implements LocalstackConfigurable{
+abstract class AbstractLocalstackSpecification extends Specification implements LocalstackConfigurable{
 
     @Shared
     def dockerImageName = "localstack/localstack:3.0.2"

@@ -1,4 +1,4 @@
-package dev.avorakh.shop.dao;
+package dev.avorakh.shop.localstack;
 
 import java.net.URI;
 import lombok.experimental.UtilityClass;

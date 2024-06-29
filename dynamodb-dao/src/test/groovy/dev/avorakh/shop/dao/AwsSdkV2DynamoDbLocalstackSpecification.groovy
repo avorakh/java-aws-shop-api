@@ -1,4 +1,8 @@
 package dev.avorakh.shop.dao
+
+import dev.avorakh.shop.localstack.LocalstackAwsSdkV2TestUtil
+import dev.avorakh.shop.test.spock.AbstractLocalstackSpecification
+
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB
 
 import org.testcontainers.containers.localstack.LocalStackContainer

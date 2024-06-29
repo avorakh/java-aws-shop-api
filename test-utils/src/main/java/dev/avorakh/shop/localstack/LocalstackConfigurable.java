@@ -1,4 +1,4 @@
-package dev.avorakh.shop.function.test;
+package dev.avorakh.shop.localstack;
 
 import java.net.URI;
 import org.testcontainers.containers.localstack.LocalStackContainer;
