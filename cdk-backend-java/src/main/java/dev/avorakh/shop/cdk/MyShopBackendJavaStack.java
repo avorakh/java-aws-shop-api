@@ -14,6 +14,9 @@ import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
 import software.amazon.awscdk.services.lambda.Runtime;
+import software.amazon.awscdk.services.lambda.eventsources.SqsEventSource;
+import software.amazon.awscdk.services.sqs.DeadLetterQueue;
+import software.amazon.awscdk.services.sqs.Queue;
 import software.constructs.Construct;
 
 import java.util.List;
@@ -94,6 +97,53 @@ public class MyShopBackendJavaStack extends Stack {
         productTable.grantReadWriteData(createProductFunction);
         stockTable.grantReadWriteData(createProductFunction);
 
+        createProductAPIs(getProductsListFunction, createProductFunction, getProductsByIdFunction);
+
+        var catalogItemsQueue = createCatalogItemsQueue();
+
+        var catalogBatchProcessFunctionName = "catalogBatchProcess";
+        var catalogBatchProcessFunction = new Function(
+                this,
+                catalogBatchProcessFunctionName,
+                getLambdaFunctionProps(
+                        catalogBatchProcessFunctionName,
+                        "./../asset/catalog-batch-process-function-aws.jar",
+                        "dev.avorakh.shop.function.LambdaHandler::handleRequest"));
+
+        // Add Environment Variables to 'catalogBatchProcess' Lambda function
+        catalogBatchProcessFunction.addEnvironment(PRODUCT_TABLE_NAME, PRODUCT);
+        catalogBatchProcessFunction.addEnvironment(STOCK_TABLE_NAME, STOCK);
+
+        // Grant the 'catalogBatchProcess' Lambda function read access to the Product and Stock DynamoDB tables
+        productTable.grantReadWriteData(catalogBatchProcessFunction);
+        stockTable.grantReadWriteData(catalogBatchProcessFunction);
+
+        // Configure the SQS event source to trigger the Lambda function
+        var sqsEventSource = SqsEventSource.Builder.create(catalogItemsQueue)
+                .batchSize(5)
+                .build();
+
+        catalogBatchProcessFunction.addEventSource(sqsEventSource);
+    }
+
+    private @NotNull Queue createCatalogItemsQueue() {
+        // Create the dead-letter queue
+        var deadLetterQueue = Queue.Builder.create(this, "CatalogItemsDeadLetterQueue")
+                .queueName("catalogItemsDeadLetterQueue")
+                .build();
+
+        // Create the main queue with the dead-letter queue
+        return Queue.Builder.create(this, "CatalogItemsQueue")
+                .queueName("catalogItemsQueue")
+                .visibilityTimeout(Duration.seconds(300))
+                .deadLetterQueue(DeadLetterQueue.builder()
+                        .queue(deadLetterQueue)
+                        .maxReceiveCount(1)
+                        .build())
+                .build();
+    }
+
+    private void createProductAPIs(Function getProductsListFunction, Function createProductFunction, Function getProductsByIdFunction) {
         var api = createApiGateway();
 
         var products = api.getRoot().addResource("products");
