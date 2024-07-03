@@ -1,0 +1,26 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' apply true
+}
+
+project.description= "import-file-parser-function"
+
+dependencies {
+    implementation platform(libs.aws.sdk.v2.bom.get().toString())
+    implementation platform(libs.jackson.bom.get().toString())
+    implementation libs.bundles.aws.lambda
+    implementation libs.opencsv
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
+
+    testImplementation project(":test-utils")
+    testImplementation libs.bundles.groovy.test
+    testImplementation libs.slf4j.api
+    testImplementation libs.bundles.testcontainers.localstack
+}
+assemble.dependsOn = [shadowJar]
+
+
+shadowJar {
+    archiveClassifier.set('aws')
+    mergeServiceFiles()
+}

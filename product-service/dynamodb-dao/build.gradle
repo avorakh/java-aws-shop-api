@@ -1,0 +1,13 @@
+project.description= "dynamodb-dao"
+
+dependencies {
+    implementation platform(libs.aws.sdk.v2.bom.get().toString())
+    implementation project(":product-service:products-common")
+    implementation 'software.amazon.awssdk:dynamodb'
+    implementation 'software.amazon.awssdk:dynamodb-enhanced'
+
+    testImplementation project(":test-utils")
+    testImplementation libs.slf4j.api
+    testImplementation libs.logback
+    testImplementation libs.bundles.testcontainers.localstack
+}
