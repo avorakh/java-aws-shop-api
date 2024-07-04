@@ -9,6 +9,7 @@ dependencies {
     implementation libs.bundles.aws.lambda
     implementation 'software.amazon.awssdk:dynamodb'
     implementation 'software.amazon.awssdk:dynamodb-enhanced'
+    implementation 'software.amazon.awssdk:sns'
     implementation project(":product-service:products-common")
     implementation project(":product-service:dynamodb-dao")
     implementation project(":product-service:product-svc")
@@ -16,7 +17,10 @@ dependencies {
 
     testImplementation project(":test-utils")
     testImplementation libs.bundles.groovy.test
-
+    testImplementation libs.bundles.testcontainers.localstack
+    testImplementation 'software.amazon.awssdk:sqs'
+    testImplementation 'software.amazon.awssdk:sts'
+    testImplementation 'software.amazon.awssdk:iam-policy-builder'
 }
 assemble.dependsOn = [shadowJar]
 

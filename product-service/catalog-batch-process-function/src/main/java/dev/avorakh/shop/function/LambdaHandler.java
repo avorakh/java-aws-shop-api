@@ -12,12 +12,15 @@ import dev.avorakh.shop.dao.TransactionalProductDao;
 import dev.avorakh.shop.function.model.CommonUtils;
 import dev.avorakh.shop.function.model.ProductInputResource;
 import dev.avorakh.shop.function.model.ProductOutputResource;
+import java.util.Map;
 import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -26,12 +29,16 @@ public class LambdaHandler implements RequestHandler<SQSEvent, Void> {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     TransactionalProductDao productDao;
+    SnsClient snsClient;
+    String snsTopicArn;
 
     public LambdaHandler() {
         var dynamoDbClient = DynamoDbClient.builder().build();
         var productTableName = System.getenv("PRODUCT_TABLE_NAME");
         var stockTableName = System.getenv("STOCK_TABLE_NAME");
         this.productDao = new DynamoDbTransactionalProductDao(dynamoDbClient, productTableName, stockTableName);
+        this.snsClient = SnsClient.builder().build();
+        this.snsTopicArn = System.getenv("SNS_TOPIC_ARN");
     }
 
     @Override
@@ -64,7 +71,12 @@ public class LambdaHandler implements RequestHandler<SQSEvent, Void> {
                 .flatMap(body -> toProductOutputResource(body, logger))
                 .filter(this::isValid)
                 .ifPresentOrElse(
-                        product -> save(product, logger),
+                        product -> {
+                            var isSaved = save(product, logger);
+                            if (isSaved) {
+                                publishToSns(message, product, logger);
+                            }
+                        },
                         () -> logger.log("Unable to save product - [%s]".formatted(message.getBody()), LogLevel.INFO));
     }
 
@@ -83,13 +95,31 @@ public class LambdaHandler implements RequestHandler<SQSEvent, Void> {
         return CommonUtils.validate(product).isEmpty();
     }
 
-    void save(ProductOutputResource product, LambdaLogger logger) {
+    boolean save(ProductOutputResource product, LambdaLogger logger) {
         try {
             productDao.create(product.getId(), toInputResource(product));
             logger.log("Product with id - [%s] was saved.".formatted(product.getId()), LogLevel.INFO);
+            return true;
         } catch (Exception e) {
             logger.log(
                     "Unable to save product - [%s] due to error - [%s]".formatted(product, e.getMessage()),
+                    LogLevel.ERROR);
+            return false;
+        }
+    }
+
+    void publishToSns(SQSEvent.SQSMessage message, ProductOutputResource product, LambdaLogger logger) {
+        try {
+
+            var publishResponse = snsClient.publish(builder -> builder.topicArn(snsTopicArn)
+                    .subject("New product")
+                    .messageAttributes(toMessageAttributes(product))
+                    .message(message.getBody()));
+            logger.log("SNS message published with id - [%s]".formatted(publishResponse.messageId()), LogLevel.INFO);
+        } catch (Exception e) {
+            logger.log(
+                    "Unable to publish SNS message for product - [%s] due to error - [%s]"
+                            .formatted(message.getBody(), e.getMessage()),
                     LogLevel.ERROR);
         }
     }
@@ -101,5 +131,19 @@ public class LambdaHandler implements RequestHandler<SQSEvent, Void> {
                 .price(product.getPrice())
                 .count(product.getCount())
                 .build();
+    }
+
+    Map<String, MessageAttributeValue> toMessageAttributes(ProductOutputResource product) {
+
+        return Map.of(
+                "id", toMessageAttributeValue("String", product.getId()),
+                "title", toMessageAttributeValue("String", product.getTitle()),
+                "description", toMessageAttributeValue("String", product.getDescription()),
+                "price", toMessageAttributeValue("Number", product.getPrice().toString()),
+                "count", toMessageAttributeValue("Number", product.getCount().toString()));
+    }
+
+    MessageAttributeValue toMessageAttributeValue(String type, String value) {
+        return MessageAttributeValue.builder().stringValue(value).dataType(type).build();
     }
 }
