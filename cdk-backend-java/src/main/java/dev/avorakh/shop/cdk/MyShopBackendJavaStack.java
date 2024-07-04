@@ -15,12 +15,19 @@ import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.amazon.awscdk.services.lambda.eventsources.SqsEventSource;
+import software.amazon.awscdk.services.sns.NumericConditions;
+import software.amazon.awscdk.services.sns.StringConditions;
+import software.amazon.awscdk.services.sns.SubscriptionFilter;
+import software.amazon.awscdk.services.sns.Topic;
+import software.amazon.awscdk.services.sns.subscriptions.EmailSubscription;
 import software.amazon.awscdk.services.sqs.DeadLetterQueue;
 import software.amazon.awscdk.services.sqs.Queue;
 import software.constructs.Construct;
 
 import java.util.List;
 import java.util.Map;
+
+import static software.amazon.awscdk.services.sns.SubscriptionFilter.stringFilter;
 
 public class MyShopBackendJavaStack extends Stack {
 
@@ -101,7 +108,40 @@ public class MyShopBackendJavaStack extends Stack {
 
         var catalogItemsQueue = createCatalogItemsQueue();
 
+        var snsDeadLetterQueue = Queue.Builder.create(this, "SnsDeadLetterQueue")
+                .queueName("snsDeadLetterQueue")
+                .build();
+
         var catalogBatchProcessFunctionName = "catalogBatchProcess";
+
+        // Create an SNS topic
+        var createProductTopic = Topic.Builder.create(this, "CreateProductTopic")
+                .topicName("createProductTopic2")
+                .build();
+
+        // Add an email subscription to the SNS topic
+        createProductTopic.addSubscription(EmailSubscription.Builder
+                .create("avorakh.my.shop@yopmail.com")
+                .deadLetterQueue(snsDeadLetterQueue)
+                .build());
+
+        var priceGrTh10filter = Map.of("price", SubscriptionFilter.numericFilter(
+                NumericConditions.builder().greaterThan(10).build()));
+        createProductTopic.addSubscription(EmailSubscription.Builder
+                .create("avorakh.my.shop.price@yopmail.com")
+                        .filterPolicy(priceGrTh10filter)
+                .deadLetterQueue(snsDeadLetterQueue)
+                .build());
+
+        var countLess5filter = Map.of("count", SubscriptionFilter.numericFilter(
+                NumericConditions.builder().lessThan(5).build()));
+        createProductTopic.addSubscription(EmailSubscription.Builder
+                .create("avorakh.my.shop.count@yopmail.com")
+                .filterPolicy(countLess5filter)
+                .deadLetterQueue(snsDeadLetterQueue)
+                .build());
+
+
         var catalogBatchProcessFunction = new Function(
                 this,
                 catalogBatchProcessFunctionName,
@@ -113,6 +153,7 @@ public class MyShopBackendJavaStack extends Stack {
         // Add Environment Variables to 'catalogBatchProcess' Lambda function
         catalogBatchProcessFunction.addEnvironment(PRODUCT_TABLE_NAME, PRODUCT);
         catalogBatchProcessFunction.addEnvironment(STOCK_TABLE_NAME, STOCK);
+        catalogBatchProcessFunction.addEnvironment("SNS_TOPIC_ARN", createProductTopic.getTopicArn());
 
         // Grant the 'catalogBatchProcess' Lambda function read access to the Product and Stock DynamoDB tables
         productTable.grantReadWriteData(catalogBatchProcessFunction);
@@ -124,6 +165,8 @@ public class MyShopBackendJavaStack extends Stack {
                 .build();
 
         catalogBatchProcessFunction.addEventSource(sqsEventSource);
+
+        createProductTopic.grantPublish(catalogBatchProcessFunction);
     }
 
     private @NotNull Queue createCatalogItemsQueue() {
