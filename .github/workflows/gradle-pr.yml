@@ -1,0 +1,59 @@
+name: Java CI with Gradle, JaCoCo report for PRs
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: "Build with JaCoCo report"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.1
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4.0.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2.11.1
+        with:
+          gradle-version: 8.7
+
+      - name: Build with Gradle
+        run: gradle build
+
+      - name: Add coverage report to PR
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.6.1
+        with:
+          paths: ${{ github.workspace }}/**/build/reports/jacoco/**/*TestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "JaCoCo coverage report"
+          pass-emoji: ':white_check_mark:'
+          min-coverage-overall: 50
+          min-coverage-changed-files: 50
+          continue-on-error: false
+
+      - name: Fail PR if changed files coverage is less than 50%
+        if: ${{ steps.jacoco.outputs.coverage-changed-files < 50.0 }}
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            core.setFailed('The coverage is less than 50% for changed files!')
+
+      - name: Fail PR if overall coverage is less than 50%
+        if: ${{ steps.jacoco.outputs.coverage-overall < 50.0 }}
+        uses: actions/github-script@v7.0.1
+        with:
+          script: |
+            core.setFailed('Overall coverage is less than 50%!')
