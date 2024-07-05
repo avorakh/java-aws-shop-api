@@ -116,7 +116,7 @@ public class MyShopBackendJavaStack extends Stack {
 
         // Create an SNS topic
         var createProductTopic = Topic.Builder.create(this, "CreateProductTopic")
-                .topicName("createProductTopic2")
+                .topicName("createProductTopic")
                 .build();
 
         // Add an email subscription to the SNS topic
