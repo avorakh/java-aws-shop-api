@@ -10,12 +10,14 @@ dependencies {
     implementation libs.bundles.aws.lambda
     implementation libs.opencsv
     implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:sqs'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
 
     testImplementation project(":test-utils")
     testImplementation libs.bundles.groovy.test
     testImplementation libs.slf4j.api
     testImplementation libs.bundles.testcontainers.localstack
+    testImplementation 'software.amazon.awssdk:sts'
 }
 assemble.dependsOn = [shadowJar]
 

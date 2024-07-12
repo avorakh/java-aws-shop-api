@@ -14,10 +14,20 @@ import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
 import software.amazon.awscdk.services.lambda.Runtime;
+import software.amazon.awscdk.services.lambda.eventsources.SqsEventSource;
+import software.amazon.awscdk.services.sns.NumericConditions;
+import software.amazon.awscdk.services.sns.StringConditions;
+import software.amazon.awscdk.services.sns.SubscriptionFilter;
+import software.amazon.awscdk.services.sns.Topic;
+import software.amazon.awscdk.services.sns.subscriptions.EmailSubscription;
+import software.amazon.awscdk.services.sqs.DeadLetterQueue;
+import software.amazon.awscdk.services.sqs.Queue;
 import software.constructs.Construct;
 
 import java.util.List;
 import java.util.Map;
+
+import static software.amazon.awscdk.services.sns.SubscriptionFilter.stringFilter;
 
 public class MyShopBackendJavaStack extends Stack {
 
@@ -94,6 +104,89 @@ public class MyShopBackendJavaStack extends Stack {
         productTable.grantReadWriteData(createProductFunction);
         stockTable.grantReadWriteData(createProductFunction);
 
+        createProductAPIs(getProductsListFunction, createProductFunction, getProductsByIdFunction);
+
+        var catalogItemsQueue = createCatalogItemsQueue();
+
+        var snsDeadLetterQueue = Queue.Builder.create(this, "SnsDeadLetterQueue")
+                .queueName("snsDeadLetterQueue")
+                .build();
+
+        var catalogBatchProcessFunctionName = "catalogBatchProcess";
+
+        // Create an SNS topic
+        var createProductTopic = Topic.Builder.create(this, "CreateProductTopic")
+                .topicName("createProductTopic")
+                .build();
+
+        // Add an email subscription to the SNS topic
+        createProductTopic.addSubscription(EmailSubscription.Builder
+                .create("avorakh.my.shop@yopmail.com")
+                .deadLetterQueue(snsDeadLetterQueue)
+                .build());
+
+        var priceGrTh10filter = Map.of("price", SubscriptionFilter.numericFilter(
+                NumericConditions.builder().greaterThan(10).build()));
+        createProductTopic.addSubscription(EmailSubscription.Builder
+                .create("avorakh.my.shop.price@yopmail.com")
+                        .filterPolicy(priceGrTh10filter)
+                .deadLetterQueue(snsDeadLetterQueue)
+                .build());
+
+        var countLess5filter = Map.of("count", SubscriptionFilter.numericFilter(
+                NumericConditions.builder().lessThan(5).build()));
+        createProductTopic.addSubscription(EmailSubscription.Builder
+                .create("avorakh.my.shop.count@yopmail.com")
+                .filterPolicy(countLess5filter)
+                .deadLetterQueue(snsDeadLetterQueue)
+                .build());
+
+
+        var catalogBatchProcessFunction = new Function(
+                this,
+                catalogBatchProcessFunctionName,
+                getLambdaFunctionProps(
+                        catalogBatchProcessFunctionName,
+                        "./../asset/catalog-batch-process-function-aws.jar",
+                        "dev.avorakh.shop.function.LambdaHandler::handleRequest"));
+
+        // Add Environment Variables to 'catalogBatchProcess' Lambda function
+        catalogBatchProcessFunction.addEnvironment(PRODUCT_TABLE_NAME, PRODUCT);
+        catalogBatchProcessFunction.addEnvironment(STOCK_TABLE_NAME, STOCK);
+        catalogBatchProcessFunction.addEnvironment("SNS_TOPIC_ARN", createProductTopic.getTopicArn());
+
+        // Grant the 'catalogBatchProcess' Lambda function read access to the Product and Stock DynamoDB tables
+        productTable.grantReadWriteData(catalogBatchProcessFunction);
+        stockTable.grantReadWriteData(catalogBatchProcessFunction);
+
+        // Configure the SQS event source to trigger the Lambda function
+        var sqsEventSource = SqsEventSource.Builder.create(catalogItemsQueue)
+                .batchSize(5)
+                .build();
+
+        catalogBatchProcessFunction.addEventSource(sqsEventSource);
+
+        createProductTopic.grantPublish(catalogBatchProcessFunction);
+    }
+
+    private @NotNull Queue createCatalogItemsQueue() {
+        // Create the dead-letter queue
+        var deadLetterQueue = Queue.Builder.create(this, "CatalogItemsDeadLetterQueue")
+                .queueName("catalogItemsDeadLetterQueue")
+                .build();
+
+        // Create the main queue with the dead-letter queue
+        return Queue.Builder.create(this, "CatalogItemsQueue")
+                .queueName("catalogItemsQueue")
+                .visibilityTimeout(Duration.seconds(300))
+                .deadLetterQueue(DeadLetterQueue.builder()
+                        .queue(deadLetterQueue)
+                        .maxReceiveCount(1)
+                        .build())
+                .build();
+    }
+
+    private void createProductAPIs(Function getProductsListFunction, Function createProductFunction, Function getProductsByIdFunction) {
         var api = createApiGateway();
 
         var products = api.getRoot().addResource("products");

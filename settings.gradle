@@ -13,6 +13,7 @@ include ':product-service:product-fill-example-data'
 include ':product-service:get-products-list-function'
 include ':product-service:get-products-by-id-function'
 include ':product-service:create-product-function'
+include ':product-service:catalog-batch-process-function'
 
 // Import Service
 include ':import-service'

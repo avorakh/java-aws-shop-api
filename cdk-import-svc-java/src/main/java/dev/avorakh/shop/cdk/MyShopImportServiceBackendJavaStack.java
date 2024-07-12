@@ -10,6 +10,10 @@ import software.amazon.awscdk.services.lambda.FunctionProps;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.amazon.awscdk.services.s3.*;
 import software.amazon.awscdk.services.s3.notifications.LambdaDestination;
+import software.amazon.awscdk.services.sqs.Queue;
+import software.amazon.awscdk.services.sqs.QueueAttributes;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.constructs.Construct;
 
 import java.util.List;
@@ -65,6 +69,15 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
 
         doDeployment(api);
 
+        var catalogItemsQueueName = "catalogItemsQueue";
+        var queueArn =  getQueueArn(catalogItemsQueueName);
+
+        // Import the existing SQS queue by its name
+        var catalogItemsQueue = Queue.fromQueueAttributes(this, "ImportedQueue_catalogItemsQueue", QueueAttributes.builder()
+                .queueArn(queueArn)
+                .queueName(catalogItemsQueueName)
+                .build());
+
         // The 'importFileParser' Lambda function
         String importFileParserFunctionName = "importFileParser";
         var importFileParserFunction = new Function(
@@ -78,6 +91,10 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
         // Add Environment Variables to 'importFileParser' Lambda function
         importFileParserFunction.addEnvironment("UPLOAD_FOLDER", "uploaded");
         importFileParserFunction.addEnvironment("PARSED_FOLDER", "parsed");
+        importFileParserFunction.addEnvironment("CATALOG_ITEMS_QUEUE_URL", catalogItemsQueue.getQueueUrl());
+
+        catalogItemsQueue.grantSendMessages(importFileParserFunction);
+
 
         // Grant the Lambda function read permissions on the bucket
         s3Bucket.grantReadWrite(importFileParserFunction);
@@ -169,4 +186,14 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
                 .build();
     }
 
+    private static String getQueueArn(String queueName) {
+        try (var sqsClient = SqsClient.builder().build()) {
+            var queueUrl = sqsClient.getQueueUrl(builder -> builder.queueName(queueName)).queueUrl();
+
+            var response = sqsClient.getQueueAttributes(builder -> builder
+                    .queueUrl(queueUrl)
+                    .attributeNames(List.of(QueueAttributeName.QUEUE_ARN)));
+            return response.attributes().get(QueueAttributeName.QUEUE_ARN);
+        }
+    }
 }
