@@ -1,6 +1,7 @@
 package dev.avorakh.shop.function;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayCustomAuthorizerEvent;
 import com.amazonaws.services.lambda.runtime.events.IamPolicyResponse;
@@ -12,6 +13,10 @@ import java.util.Optional;
 
 public class LambdaHandler implements RequestHandler<APIGatewayCustomAuthorizerEvent, IamPolicyResponse> {
 
+    public static final String BASIC = "Basic ";
+    public static final String UNAUTHORIZED = "unauthorized";
+    public static final String USER = "user";
+
     @Override
     public IamPolicyResponse handleRequest(APIGatewayCustomAuthorizerEvent event, Context context) {
 
@@ -19,40 +24,33 @@ public class LambdaHandler implements RequestHandler<APIGatewayCustomAuthorizerE
 
         logger.log(event.toString(), LogLevel.INFO);
 
-        var authorizationHeader = Optional.ofNullable(event)
+        return Optional.ofNullable(event)
                 .map(APIGatewayCustomAuthorizerEvent::getAuthorizationToken)
-                .filter(authorizationValue -> authorizationValue.startsWith("Basic "));
+                .filter(authorizationValue -> authorizationValue.startsWith(BASIC))
+                .map(str -> str.substring(BASIC.length()).trim())
+                .map(encodedToken -> decodeToken(encodedToken, logger))
+                .map(credentials -> credentials.split(":", 2))
+                .map(credentials -> generatePolicy(event, credentials))
+                .orElseThrow(() -> new RuntimeException(UNAUTHORIZED));
+    }
 
-        if (authorizationHeader.isEmpty()) {
-            throw new RuntimeException("unauthorized");
-        } else {
-            String base64Credentials =
-                    authorizationHeader.get().substring("Basic ".length()).trim();
+    private IamPolicyResponse generatePolicy(APIGatewayCustomAuthorizerEvent event, String[] credentials) {
+        if (credentials.length != 2) {
+            return generatePolicy(USER, IamPolicyResponse.DENY, event.getMethodArn());
+        }
+        var expectedPassword = System.getenv(credentials[0]);
+        var effect = (expectedPassword != null && expectedPassword.equals(credentials[1]))
+                ? IamPolicyResponse.ALLOW
+                : IamPolicyResponse.DENY;
+        return generatePolicy(USER, effect, event.getMethodArn());
+    }
 
-            String credentials;
-
-            try {
-                credentials = new String(Base64.getDecoder().decode(base64Credentials), StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                throw new RuntimeException("unauthorized");
-            }
-
-            // Split the credentials into username and password
-            final String[] values = credentials.split(":", 2);
-            if (values.length != 2) {
-                return generatePolicy("user", IamPolicyResponse.DENY, event.getMethodArn());
-            }
-
-            String username = values[0];
-            String password = values[1];
-
-            String expectedPassword = System.getenv(username);
-
-            if (expectedPassword != null && expectedPassword.equals(password)) {
-                return generatePolicy("user", IamPolicyResponse.ALLOW, event.getMethodArn());
-            } else {
-                return generatePolicy("user", IamPolicyResponse.DENY, event.getMethodArn());
-            }
+    private String decodeToken(String encodedToken, LambdaLogger logger) {
+        try {
+            return new String(Base64.getDecoder().decode(encodedToken), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            logger.log(e.getMessage(), LogLevel.ERROR);
+            throw new RuntimeException(UNAUTHORIZED);
         }
     }
 
