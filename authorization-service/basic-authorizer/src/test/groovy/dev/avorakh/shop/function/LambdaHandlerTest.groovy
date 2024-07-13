@@ -36,7 +36,6 @@ class LambdaHandlerTest extends Specification {
             it.principalId == 'user'
             it.policyDocument != null
             with(it.policyDocument) {
-                println(it)
                 it.Version == IamPolicyResponse.VERSION_2012_10_17
                 it.Statement != null
                 it.Statement.size() == 1
@@ -72,7 +71,6 @@ class LambdaHandlerTest extends Specification {
             it.principalId == 'user'
             it.policyDocument != null
             with(it.policyDocument) {
-                println(it)
                 it.Version == IamPolicyResponse.VERSION_2012_10_17
                 it.Statement != null
                 it.Statement.size() == 1
