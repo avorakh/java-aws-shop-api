@@ -22,4 +22,4 @@ include ':import-service:import-resource-file-function'
 
 // Authorization Service
 include ':authorization-service'
-
+include ':authorization-service:basic-authorizer'

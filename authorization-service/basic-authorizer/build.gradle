@@ -1,0 +1,16 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' apply true
+}
+
+project.description= "basic-authorizer"
+
+dependencies {
+    implementation platform(libs.aws.sdk.v2.bom.get().toString())
+    implementation libs.bundles.aws.lambda
+}
+assemble.dependsOn = [shadowJar]
+
+shadowJar {
+    archiveClassifier.set('aws')
+    mergeServiceFiles()
+}
