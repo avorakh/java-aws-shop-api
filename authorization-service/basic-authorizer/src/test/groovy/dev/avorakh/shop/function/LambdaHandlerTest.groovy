@@ -87,7 +87,7 @@ class LambdaHandlerTest extends Specification {
         }
 
         where:
-        invalid << ["INVALID:INVALID", "$username:$password:INVALID"]
+        invalid << ["INVALID:INVALID", "$username:INVALID", "INVALID"]
     }
 
 
