@@ -76,6 +76,15 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
                         .build())
                 .build());
 
+        api.addGatewayResponse("GatewayResponse4XX", GatewayResponseOptions.builder()
+                .type(ResponseType.DEFAULT_4_XX)
+                .responseHeaders(Map.of(
+                        "Access-Control-Allow-Origin", "'*'",
+                        "Access-Control-Allow-Headers", "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                        "Access-Control-Allow-Methods", "'*'"
+                ))
+                .build());
+
         doDeployment(api);
 
         var catalogItemsQueueName = "catalogItemsQueue";
