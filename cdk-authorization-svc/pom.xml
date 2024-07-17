@@ -4,15 +4,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>dev.avorakh</groupId>
-    <artifactId>cdk-import-svc-java</artifactId>
-    <version>0.3.0</version>
+    <artifactId>cdk-authorization-svc</artifactId>
+    <version>0.1.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <cdk.version>2.144.0</cdk.version>
-        <aws.sdk.v2.version>2.26.10</aws.sdk.v2.version>
+        <cdk.version>2.147.2</cdk.version>
         <constructs.version>[10.0.0,11.0.0)</constructs.version>
         <junit.version>5.7.1</junit.version>
+        <dotenv.java.version>3.0.0</dotenv.java.version>
     </properties>
 
     <build>
@@ -31,7 +31,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>dev.avorakh.shop.cdk.CdkImportSvcJavaApp</mainClass>
+                    <mainClass>dev.avorakh.shop.cdk.CdkAuthorizationSvcApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>
@@ -52,34 +52,9 @@
         </dependency>
 
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sqs</artifactId>
-            <version>${aws.sdk.v2.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>regions</artifactId>
-            <version>${aws.sdk.v2.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sso</artifactId>
-            <version>${aws.sdk.v2.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>ssooidc</artifactId>
-            <version>${aws.sdk.v2.version}</version>
-        </dependency>
-
-        <dependency>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter</artifactId>
-          <version>${junit.version}</version>
-          <scope>test</scope>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>${dotenv.java.version}</version>
         </dependency>
     </dependencies>
 </project>

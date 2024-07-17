@@ -19,3 +19,7 @@ include ':product-service:catalog-batch-process-function'
 include ':import-service'
 include ':import-service:import-file-parser-function'
 include ':import-service:import-resource-file-function'
+
+// Authorization Service
+include ':authorization-service'
+include ':authorization-service:basic-authorizer'

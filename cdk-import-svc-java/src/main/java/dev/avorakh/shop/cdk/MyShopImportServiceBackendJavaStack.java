@@ -51,9 +51,18 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
 
         s3Bucket.grantPut(importProductsFileFunction);
 
-        var api = createApiGateway();
+
+        var authFn = Function.fromFunctionName(this, "basicAuthorizerLambda", "basicAuthorizer");
+
+        var basicTokenAuthorizer = TokenAuthorizer.Builder.create(this, "basicTokenAuthorizer")
+                .handler(authFn)
+                .build();
+
+        var api = createApiGateway(basicTokenAuthorizer);
+
 
         var importResource = api.getRoot().addResource("import");
+
 
         var importProductsFile = new LambdaIntegration(importProductsFileFunction);
 
@@ -67,10 +76,19 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
                         .build())
                 .build());
 
+        api.addGatewayResponse("GatewayResponse4XX", GatewayResponseOptions.builder()
+                .type(ResponseType.DEFAULT_4_XX)
+                .responseHeaders(Map.of(
+                        "Access-Control-Allow-Origin", "'*'",
+                        "Access-Control-Allow-Headers", "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                        "Access-Control-Allow-Methods", "'*'"
+                ))
+                .build());
+
         doDeployment(api);
 
         var catalogItemsQueueName = "catalogItemsQueue";
-        var queueArn =  getQueueArn(catalogItemsQueueName);
+        var queueArn = getQueueArn(catalogItemsQueueName);
 
         // Import the existing SQS queue by its name
         var catalogItemsQueue = Queue.fromQueueAttributes(this, "ImportedQueue_catalogItemsQueue", QueueAttributes.builder()
@@ -108,6 +126,17 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
 
     }
 
+    private static String getQueueArn(String queueName) {
+        try (var sqsClient = SqsClient.builder().build()) {
+            var queueUrl = sqsClient.getQueueUrl(builder -> builder.queueName(queueName)).queueUrl();
+
+            var response = sqsClient.getQueueAttributes(builder -> builder
+                    .queueUrl(queueUrl)
+                    .attributeNames(List.of(QueueAttributeName.QUEUE_ARN)));
+            return response.attributes().get(QueueAttributeName.QUEUE_ARN);
+        }
+    }
+
     private @NotNull Model getPreSignedURLResponse(RestApi api) {
         return Model.Builder.create(this, "PreSignedURLResponse")
                 .restApi(api)
@@ -126,6 +155,15 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
                         .statusCode("200")
                         .responseModels(Map.of(APPLICATION_JSON, preSignedURLResponse))
                         .build(),
+                MethodResponse.builder()
+                        .statusCode("401")
+                        .responseModels(Map.of(APPLICATION_JSON, Model.ERROR_MODEL))
+                        .build(),
+                MethodResponse.builder()
+                        .statusCode("403")
+                        .responseModels(Map.of(APPLICATION_JSON, Model.ERROR_MODEL))
+                        .build(),
+
                 MethodResponse.builder()
                         .statusCode("500")
                         .responseModels(Map.of(APPLICATION_JSON, Model.ERROR_MODEL))
@@ -153,7 +191,7 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
                 .build();
     }
 
-    private @NotNull RestApi createApiGateway() {
+    private @NotNull RestApi createApiGateway(IAuthorizer authorizer) {
 
         CorsOptions corsOptions = CorsOptions.builder()
                 .allowOrigins(Cors.ALL_ORIGINS)
@@ -171,6 +209,7 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
                         .deployOptions(StageOptions.builder().stageName("dev").build())
                         .endpointTypes(List.of(EndpointType.REGIONAL))
                         .defaultCorsPreflightOptions(corsOptions)
+                        .defaultMethodOptions(MethodOptions.builder().authorizer(authorizer).build())
                         .build());
     }
 
@@ -184,16 +223,5 @@ public class MyShopImportServiceBackendJavaStack extends Stack {
                 .memorySize(256)
                 .ephemeralStorageSize(Size.mebibytes(512))
                 .build();
-    }
-
-    private static String getQueueArn(String queueName) {
-        try (var sqsClient = SqsClient.builder().build()) {
-            var queueUrl = sqsClient.getQueueUrl(builder -> builder.queueName(queueName)).queueUrl();
-
-            var response = sqsClient.getQueueAttributes(builder -> builder
-                    .queueUrl(queueUrl)
-                    .attributeNames(List.of(QueueAttributeName.QUEUE_ARN)));
-            return response.attributes().get(QueueAttributeName.QUEUE_ARN);
-        }
     }
 }

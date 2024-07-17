@@ -1,0 +1,23 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' apply true
+}
+
+project.description= "basic-authorizer"
+
+dependencies {
+    implementation platform(libs.aws.sdk.v2.bom.get().toString())
+    implementation libs.bundles.aws.lambda
+
+    testImplementation project(":test-utils")
+    testImplementation libs.bundles.groovy.test
+}
+assemble.dependsOn = [shadowJar]
+
+shadowJar {
+    archiveClassifier.set('aws')
+    mergeServiceFiles()
+}
+
+test {
+    environment "johndoe", "TEST_PASSWORD"
+}
